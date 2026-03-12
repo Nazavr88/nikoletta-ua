@@ -199,3 +199,276 @@
     </script>
 </body>
 </html>
+
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nicoletta Ukraine — Офіційний магазин</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Playfair+Display:ital,wght@0,700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Montserrat', sans-serif; background: #fdfcfb; }
+        h2, .logo { font-family: 'Playfair Display', serif; }
+        .cart-sidebar { transition: transform 0.4s ease; }
+        .old-price { text-decoration: line-through; color: #a8a29e; font-size: 0.85em; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .product-image-container { position: relative; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; background: white; }
+        .product-image { transition: opacity 0.3s ease-in-out; width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Зменшена розмірна сітка БЕЗ обрізки */
+        .size-chart-image {
+            object-fit: contain !important;
+            transform: scale(0.8);
+            width: 100%;
+            height: 100%;
+        }
+
+        .dot-container { display: flex; justify-content: center; gap: 6px; margin-top: 8px; margin-bottom: 8px; }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: #d1d5db; transition: 0.3s; }
+        .dot.active { background: #1c1917; transform: scale(1.3); }
+
+        .my-input {
+            width: 100% !important;
+            height: 50px !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 12px !important;
+            padding: 0 15px !important;
+            font-size: 16px !important;
+            background: white !important;
+            color: #1c1917 !important;
+            margin-bottom: 12px !important;
+            display: block !important;
+        }
+    </style>
+</head>
+<body class="text-stone-800">
+
+    <header class="bg-white border-b sticky top-0 z-50 px-4 py-3 flex justify-between items-center shadow-sm">
+        <div class="logo text-xl md:text-2xl font-bold uppercase tracking-tighter cursor-pointer" onclick="showTab('catalog')">NICOLETTA</div>
+        <div class="cursor-pointer bg-stone-900 p-2 px-4 rounded-full relative active:scale-95 transition" onclick="openCart()">
+            <span class="text-white text-xs font-bold uppercase">Кошик</span>
+            <span id="cart-count" class="ml-2 bg-red-500 text-white text-[10px] px-1.5 rounded-full font-bold">0</span>
+        </div>
+    </header>
+
+    <nav class="flex border-b bg-white text-[10px] font-bold uppercase tracking-widest">
+        <button onclick="showTab('catalog')" class="flex-1 py-4 border-r hover:bg-stone-50">Каталог</button>
+        <button onclick="showTab('about')" class="flex-1 py-4 hover:bg-stone-50">Про нас</button>
+    </nav>
+
+    <main id="catalog" class="tab-content active max-w-7xl mx-auto px-4 py-8">
+        <div id="products-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8"></div>
+    </main>
+
+    <section id="about" class="tab-content max-w-2xl mx-auto px-4 py-16 text-center">
+        <h2 class="text-3xl font-bold mb-6 italic uppercase">Про нас</h2>
+        <p class="text-stone-600 leading-relaxed mb-8">Оригінальна турецька білизна Nicoletta. Висока якість бавовни для вашого комфорту.</p>
+        
+        <div class="bg-stone-100 p-6 rounded-2xl">
+            <h3 class="font-bold mb-4 uppercase tracking-widest text-sm">Контакти</h3>
+            <p class="text-lg font-bold mb-4">+38 (093) 123-45-67</p> 
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="https://t.me/your_username" target="_blank" class="bg-sky-500 text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider">Telegram</a>
+                <a href="viber://chat?number=%2B380931234567" class="bg-violet-600 text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider">Viber</a>
+            </div>
+        </div>
+    </section>
+
+    <div id="cart-modal" class="fixed top-0 right-0 w-full md:w-[450px] h-full bg-white shadow-2xl translate-x-full cart-sidebar z-[100] flex flex-col">
+        <div class="p-6 border-b flex justify-between items-center bg-white">
+            <h2 class="text-xl font-bold uppercase italic">Кошик</h2>
+            <button onclick="closeCart()" class="text-3xl">&times;</button>
+        </div>
+        
+        <div id="cart-items-list" class="flex-1 p-4 space-y-4 overflow-y-auto bg-stone-50"></div>
+        
+        <div id="order-form" class="hidden p-6 border-t bg-white">
+            <input type="text" id="c-name" placeholder="Прізвище та Ім'я *" class="my-input">
+            <input type="tel" id="c-phone" placeholder="Телефон *" class="my-input" maxlength="13">
+            <select id="c-delivery" class="my-input"><option value="Нова Пошта">Нова Пошта</option><option value="Укрпошта">Укрпошта</option></select>
+            <select id="c-payment" class="my-input"><option value="Оплата при отриманні">Оплата при отриманні</option><option value="Оплата на карту">Оплата на карту</option></select>
+            <textarea id="c-comment" placeholder="Місто та номер відділення *" class="my-input !h-24 py-2"></textarea>
+        </div>
+
+        <div class="p-6 border-t bg-white">
+            <div class="flex justify-between items-center mb-6 text-xl">
+                <b>Разом:</b> <span class="font-bold text-red-600"><span id="cart-total">0</span> ₴</span>
+            </div>
+            <button id="checkout-btn" onclick="showForm()" class="w-full bg-stone-900 text-white py-4 rounded-xl font-bold uppercase tracking-widest active:scale-95 transition">Оформити замовлення</button>
+            <button id="send-btn" onclick="sendOrder()" class="hidden w-full bg-green-600 text-white py-4 rounded-xl font-bold uppercase tracking-widest shadow-lg">Підтвердити замовлення</button>
+        </div>
+    </div>
+
+    <script>
+        const TG_TOKEN = "8611149064:AAG0tDc4WmrXcarHBIOIFFLwmOo689CPSW4";
+        const CHAT_ID = "625467310"; 
+        const SIZE_CHART_IMG = "https://i.ibb.co/2zPhrxD/7046441739-w640-h2048-6589118425-w640-h2048-rozmiri.png";
+
+        let cart = [];
+
+        // Логіка номерів замовлень
+        if(!localStorage.getItem('orderNumber')) {
+            localStorage.setItem('orderNumber', '756');
+        }
+
+        const sAdult = ["M", "L", "XL", "2XL"], sBatal = ["2XL", "3XL", "4XL"], sKids = ["3-4 роки", "5-6 років", "7-8 років"], sTeen = ["9-10 років", "11-12 років", "13-14 років"];
+
+        const products = [
+            { id: 1, code: "37495", name: "Набір 7 шт (Ч/Б/С)", price: 599, old: 799, img: "https://i.ibb.co/HDqFMkwm/37495.png", sizes: sAdult, type: "adult" },
+            { id: 2, code: "713001", name: "Набір 7 шт (Кольорові)", price: 599, old: 799, img: "https://i.ibb.co/mF6dwLPD/713001.png", sizes: sAdult, type: "adult" },
+            { id: 3, code: "713059", name: "Набір 7 шт (Асорті)", price: 599, old: 799, img: "https://i.ibb.co/MkBmkvd7/713059-1.png", sizes: sAdult, type: "adult" },
+            { id: 4, code: "713139", name: "Набір 7 шт (Мікс)", price: 599, old: 799, img: "https://i.ibb.co/YTTP0f4c/713139.png", sizes: sAdult, type: "adult" },
+            { id: 5, code: "163576", name: "Набір 5 шт (Базові)", price: 499, old: 699, img: "https://i.ibb.co/LXqHN25T/163576.png", sizes: sAdult, type: "adult" },
+            { id: 6, code: "163577", name: "Набір 5 шт (Нюдові)", price: 499, old: 699, img: "https://i.ibb.co/4Dt5ZCq/5-163577.png", sizes: sAdult, type: "adult" },
+            { id: 7, code: "163612_b", name: "Набір 3 шт (Батал)", price: 599, old: 750, img: "https://i.ibb.co/VWPD9BBP/324302.jpg", sizes: sBatal, type: "adult" },
+            { id: 8, code: "163612_n", name: "Набір 3 шт (Норма)", price: 599, old: 750, img: "https://i.ibb.co/273c8k9M/313302.jpg", sizes: sAdult, type: "adult" },
+            { id: 9, code: "40728", name: "Дитячі (3-7 років)", price: 499, old: 650, img: "https://i.ibb.co/0yLxHZHX/40728.png", sizes: sKids, type: "kids" },
+            { id: 10, code: "740027", name: "Дитячі (Принти)", price: 499, old: 650, img: "https://i.ibb.co/GvTX6PHV/740027.png", sizes: sKids, type: "kids" },
+            { id: 11, code: "740081", name: "Дитячі (Nicoletta)", price: 599, old: 799, img: "https://i.ibb.co/N6jm7CVk/470962166.png", sizes: sKids, type: "kids" },
+            { id: 12, code: "42495", name: "Підліткові (8-13 років)", price: 499, old: 650, img: "https://i.ibb.co/1Svh2h/42495.png", sizes: sTeen, type: "kids" },
+            { id: 13, code: "742089", name: "Дитячі (Старша група)", price: 499, old: 650, img: "https://i.ibb.co/4ZTWf97F/742089.png", sizes: sTeen, type: "kids" }
+        ];
+
+        function showTab(t) { 
+            document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active')); 
+            document.getElementById(t).classList.add('active'); window.scrollTo(0,0);
+        }
+
+        function switchImg(id, idx) {
+            const imgEl = document.getElementById(`img-${id}`);
+            const dots = document.querySelectorAll(`.dot-${id}`);
+            const p = products.find(x => x.id === id);
+            
+            imgEl.style.opacity = '0';
+            setTimeout(() => {
+                if (idx === 1) {
+                    imgEl.src = SIZE_CHART_IMG;
+                    imgEl.classList.add('size-chart-image');
+                } else {
+                    imgEl.src = p.img;
+                    imgEl.classList.remove('size-chart-image');
+                }
+                imgEl.style.opacity = '1';
+                dots.forEach(d => d.classList.remove('active'));
+                dots[idx].classList.add('active');
+            }, 200);
+        }
+
+        function toggleSlider(id) {
+            const imgEl = document.getElementById(`img-${id}`);
+            const p = products.find(x => x.id === id);
+            switchImg(id, imgEl.src.includes('rozmiri') ? 0 : 1);
+        }
+
+        function render() {
+            document.getElementById('products-grid').innerHTML = products.map(p => {
+                const hasSlider = p.type !== 'kids';
+                return `
+                <div class="bg-white p-3 rounded-2xl border shadow-sm flex flex-col h-full">
+                    <div class="product-image-container aspect-[3/4] rounded-xl overflow-hidden" onclick="${hasSlider ? `toggleSlider(${p.id})` : ''}">
+                        <img id="img-${p.id}" src="${p.img}" class="product-image">
+                    </div>
+                    ${hasSlider ? `
+                        <div class="dot-container">
+                            <div class="dot dot-${p.id} active" onclick="event.stopPropagation(); switchImg(${p.id}, 0)"></div>
+                            <div class="dot dot-${p.id}" onclick="event.stopPropagation(); switchImg(${p.id}, 1)"></div>
+                        </div>
+                    ` : '<div class="h-6"></div>'}
+                    <h3 class="text-[10px] font-bold uppercase mb-2 leading-tight">${p.name}</h3>
+                    <select id="s-${p.id}" class="w-full text-[10px] border p-2 rounded-lg bg-stone-50 outline-none mb-3">
+                        ${p.sizes.map(s => `<option value="${s}">${s}</option>`).join('')}
+                    </select>
+                    <div class="flex justify-between items-center mt-auto">
+                        <span class="old-price">${p.old} ₴</span>
+                        <span class="text-red-600 font-bold text-sm">${p.price} ₴</span>
+                    </div>
+                    <button onclick="addToCart(${p.id})" class="w-full bg-stone-900 text-white mt-3 py-3 rounded-xl text-[9px] font-bold uppercase tracking-widest active:scale-95 transition">У кошик</button>
+                </div>`;
+            }).join('');
+        }
+
+        function addToCart(id) {
+            const p = products.find(x => x.id === id);
+            const size = document.getElementById(`s-${id}`).value;
+            const existing = cart.find(i => i.id === id && i.selectedSize === size);
+            if(existing) { existing.qty++; } 
+            else { cart.push({ ...p, selectedSize: size, qty: 1 }); }
+            updateCart(); openCart();
+        }
+
+        function updateCart() {
+            const list = document.getElementById('cart-items-list');
+            list.innerHTML = cart.map((item, idx) => `
+                <div class="flex items-center gap-3 bg-white p-3 rounded-2xl border shadow-sm">
+                    <img src="${item.img}" class="w-12 h-16 object-cover rounded-lg">
+                    <div class="flex-1">
+                        <div class="text-[9px] font-bold uppercase truncate">${item.name}</div>
+                        <div class="text-[8px] text-stone-400 mt-0.5">Розмір: ${item.selectedSize}</div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <button onclick="changeQty(${idx}, -1)" class="w-6 h-6 bg-stone-100 rounded-md text-xs">-</button>
+                            <span class="text-xs font-bold">${item.qty}</span>
+                            <button onclick="changeQty(${idx}, 1)" class="w-6 h-6 bg-stone-100 rounded-md text-xs">+</button>
+                            <span class="text-xs font-bold ml-auto text-red-600">${item.price * item.qty} ₴</span>
+                        </div>
+                    </div>
+                    <button onclick="removeFromCart(${idx})" class="text-stone-300 text-xl px-1">&times;</button>
+                </div>`).join('');
+            document.getElementById('cart-total').innerText = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+            document.getElementById('cart-count').innerText = cart.reduce((s, i) => s + i.qty, 0);
+        }
+
+        function changeQty(idx, delta) {
+            cart[idx].qty += delta;
+            if(cart[idx].qty <= 0) cart.splice(idx, 1);
+            updateCart();
+        }
+
+        function removeFromCart(idx) { cart.splice(idx, 1); updateCart(); }
+        function openCart() { document.getElementById('cart-modal').classList.remove('translate-x-full'); }
+        function closeCart() { document.getElementById('cart-modal').classList.add('translate-x-full'); resetUI(); }
+        function showForm() { if(cart.length > 0) { document.getElementById('cart-items-list').classList.add('hidden'); document.getElementById('order-form').classList.remove('hidden'); document.getElementById('checkout-btn').classList.add('hidden'); document.getElementById('send-btn').classList.remove('hidden'); } }
+        function resetUI() { document.getElementById('cart-items-list').classList.remove('hidden'); document.getElementById('order-form').classList.add('hidden'); document.getElementById('checkout-btn').classList.remove('hidden'); document.getElementById('send-btn').classList.add('hidden'); }
+
+        async function sendOrder() {
+            const name = document.getElementById('c-name').value.trim();
+            const phone = document.getElementById('c-phone').value.trim();
+            const comment = document.getElementById('c-comment').value.trim();
+            
+            if (name.length < 2 || phone.length < 10) return alert("Заповніть контактні дані");
+
+            const btn = document.getElementById('send-btn');
+            btn.innerText = "Відправка..."; btn.disabled = true;
+
+            const currentOrderNum = localStorage.getItem('orderNumber');
+
+            let msg = `🔥 ЗАМОВЛЕННЯ №${currentOrderNum}\n👤: ${name}\n📞: ${phone}\n🚚: ${document.getElementById('c-delivery').value}\n💳: ${document.getElementById('c-payment').value}\n📍: ${comment}\n\nТОВАРИ:\n`;
+            cart.forEach(i => msg += `▫️ ${i.name} (${i.selectedSize}) - ${i.qty} шт.\n`);
+            msg += `\n💰 РАЗОМ: ${document.getElementById('cart-total').innerText} ₴`;
+
+            try {
+                const response = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({chat_id: CHAT_ID, text: msg})
+                });
+                
+                if(response.ok) {
+                    alert(`Дякуємо! Замовлення №${currentOrderNum} надіслано.`);
+                    // Збільшуємо номер для наступного замовлення
+                    localStorage.setItem('orderNumber', parseInt(currentOrderNum) + 1);
+                    cart = []; updateCart(); closeCart();
+                } else {
+                    alert("Помилка бота. Перевірте, чи ви натиснули /start у боті.");
+                }
+            } catch (e) { alert("Помилка з'єднання."); }
+            finally { btn.innerText = "Підтвердити замовлення"; btn.disabled = false; }
+        }
+
+        render();
+    </script>
+</body>
+</html>
