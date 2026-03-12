@@ -48,11 +48,11 @@
 
     <section id="about" class="tab-content max-w-2xl mx-auto px-4 py-16 text-center">
         <h2 class="text-3xl font-bold mb-6 italic uppercase">Про нас</h2>
-        <p class="text-stone-600 leading-relaxed mb-6">Оригінальна турецька білизна Nicoletta. 95% бавовна, 5% еластан. Найвища якість для вашого комфорту.</p>
+        <p class="text-stone-600 leading-relaxed mb-6">Оригінальна турецька білизна Nicoletta. Висока якість бавовни для вашого комфорту.</p>
     </section>
 
     <div id="cart-modal" class="fixed top-0 right-0 w-full md:w-[450px] h-full bg-white shadow-2xl translate-x-full cart-sidebar z-[100] flex flex-col">
-        <div class="p-6 border-b flex justify-between items-center">
+        <div class="p-6 border-b flex justify-between items-center bg-white">
             <h2 class="text-xl font-bold uppercase italic">Кошик</h2>
             <button onclick="closeCart()" class="text-3xl">&times;</button>
         </div>
@@ -61,7 +61,7 @@
         
         <div id="order-form" class="hidden p-6 border-t bg-white">
             <input type="text" id="c-name" placeholder="Прізвище та Ім'я *" class="my-input">
-            <input type="tel" id="c-phone" placeholder="Телефон (напр. 0931234567) *" class="my-input" maxlength="13" oninput="this.value = this.value.replace(/[^0-9+]/g, '')">
+            <input type="tel" id="c-phone" placeholder="Телефон (напр. 0931234567) *" class="my-input" maxlength="13">
             <select id="c-delivery" class="my-input"><option value="Нова Пошта">Нова Пошта</option><option value="Укрпошта">Укрпошта</option></select>
             <select id="c-payment" class="my-input"><option value="Оплата при отриманні">Оплата при отриманні</option><option value="Оплата на карту">Оплата на карту</option></select>
             <textarea id="c-comment" placeholder="Місто та номер відділення *" class="my-input !h-24 py-2"></textarea>
@@ -71,8 +71,8 @@
             <div class="flex justify-between items-center mb-6 text-xl">
                 <b>Разом:</b> <span class="font-bold text-red-600"><span id="cart-total">0</span> ₴</span>
             </div>
-            <button id="checkout-btn" onclick="showForm()" class="w-full bg-stone-900 text-white py-4 rounded-xl font-bold uppercase tracking-widest shadow-lg active:scale-95 transition">Оформити замовлення</button>
-            <button id="send-btn" onclick="sendOrder()" class="hidden w-full bg-green-600 text-white py-4 rounded-xl font-bold uppercase tracking-widest shadow-lg active:scale-95 transition">Підтвердити замовлення</button>
+            <button id="checkout-btn" onclick="showForm()" class="w-full bg-stone-900 text-white py-4 rounded-xl font-bold uppercase tracking-widest active:scale-95 transition">Оформити замовлення</button>
+            <button id="send-btn" onclick="sendOrder()" class="hidden w-full bg-green-600 text-white py-4 rounded-xl font-bold uppercase tracking-widest shadow-lg">Підтвердити замовлення</button>
         </div>
     </div>
 
@@ -101,8 +101,7 @@
 
         function showTab(t) { 
             document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active')); 
-            document.getElementById(t).classList.add('active'); 
-            window.scrollTo(0,0);
+            document.getElementById(t).classList.add('active'); window.scrollTo(0,0);
         }
 
         function render() {
@@ -123,23 +122,42 @@
 
         function addToCart(id) {
             const p = products.find(x => x.id === id);
-            cart.push({ ...p, selectedSize: document.getElementById(`s-${id}`).value, cartId: Date.now() });
+            const size = document.getElementById(`s-${id}`).value;
+            // Шукаємо чи є вже такий самий товар з таким самим розміром
+            const existing = cart.find(i => i.id === id && i.selectedSize === size);
+            if(existing) {
+                existing.qty++;
+            } else {
+                cart.push({ ...p, selectedSize: size, qty: 1 });
+            }
             updateCart(); openCart();
         }
 
         function updateCart() {
-            document.getElementById('cart-items-list').innerHTML = cart.map((item, idx) => `
-                <div class="flex items-center gap-4 bg-white p-3 rounded-2xl border shadow-sm">
-                    <img src="${item.img}" class="w-16 h-20 object-cover rounded-lg">
+            const list = document.getElementById('cart-items-list');
+            list.innerHTML = cart.map((item, idx) => `
+                <div class="flex items-center gap-3 bg-white p-3 rounded-2xl border shadow-sm">
+                    <img src="${item.img}" class="w-12 h-16 object-cover rounded-lg">
                     <div class="flex-1">
-                        <div class="text-[10px] font-bold uppercase">${item.name}</div>
-                        <div class="text-[9px] text-stone-500 uppercase mt-1">Арт: ${item.code} | Розмір: ${item.selectedSize}</div>
-                        <div class="text-sm font-bold mt-1 text-red-600">${item.price} ₴</div>
+                        <div class="text-[9px] font-bold uppercase truncate">${item.name}</div>
+                        <div class="text-[8px] text-stone-400 uppercase mt-0.5">Розмір: ${item.selectedSize}</div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <button onclick="changeQty(${idx}, -1)" class="w-6 h-6 bg-stone-100 rounded-md text-xs">-</button>
+                            <span class="text-xs font-bold">${item.qty}</span>
+                            <button onclick="changeQty(${idx}, 1)" class="w-6 h-6 bg-stone-100 rounded-md text-xs">+</button>
+                            <span class="text-xs font-bold ml-auto text-red-600">${item.price * item.qty} ₴</span>
+                        </div>
                     </div>
-                    <button onclick="removeFromCart(${idx})" class="text-stone-300 hover:text-red-500 text-2xl px-2">&times;</button>
+                    <button onclick="removeFromCart(${idx})" class="text-stone-300 text-xl px-1">&times;</button>
                 </div>`).join('');
-            document.getElementById('cart-total').innerText = cart.reduce((s, i) => s + i.price, 0);
-            document.getElementById('cart-count').innerText = cart.length;
+            document.getElementById('cart-total').innerText = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+            document.getElementById('cart-count').innerText = cart.reduce((s, i) => s + i.qty, 0);
+        }
+
+        function changeQty(idx, delta) {
+            cart[idx].qty += delta;
+            if(cart[idx].qty <= 0) cart.splice(idx, 1);
+            updateCart();
         }
 
         function removeFromCart(idx) { cart.splice(idx, 1); updateCart(); }
@@ -155,14 +173,14 @@
             const cleanPhone = phoneVal.replace(/\D/g, ""); 
             
             if (name.length < 2) return alert("Будь ласка, вкажіть Прізвище та Ім'я");
-            if (cleanPhone.length < 10) return alert("Помилка: номер телефону має містити як мінімум 10 цифр!");
+            if (cleanPhone.length < 10) return alert("Помилка номера телефону!");
             if (comment.length < 5) return alert("Вкажіть адресу доставки");
 
             const btn = document.getElementById('send-btn');
             btn.innerText = "Відправка..."; btn.disabled = true;
 
             let msg = `🛒 ЗАМОВЛЕННЯ\n👤: ${name}\n📞: ${phoneVal}\n🚚: ${document.getElementById('c-delivery').value}\n💳: ${document.getElementById('c-payment').value}\n📍: ${comment}\n\nТОВАРИ:\n`;
-            cart.forEach(i => msg += `▫️ ${i.name} (${i.code}) | Розмір: ${i.selectedSize} - ${i.price} ₴\n`);
+            cart.forEach(i => msg += `▫️ ${i.name} (Код: ${i.code}) | ${i.selectedSize} | к-сть: ${i.qty} шт. | ${i.price * i.qty} ₴\n`);
             msg += `\n💰 РАЗОМ: ${document.getElementById('cart-total').innerText} ₴`;
 
             try {
